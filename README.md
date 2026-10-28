@@ -76,7 +76,7 @@ AI를 **2단계**로 나눴습니다.
 **요구 사항:** Node.js 20+, [Ollama](https://ollama.com), OpenAI API 키
 
 ```bash
-git clone https://github.com/[GitHub아이디]/easy-notice.git
+git clone https://github.com/chiyyy/easy-notice.git
 cd easy-notice
 npm install
 ollama pull qwen2.5vl:7b    # 확정 모델로 변경 예정
