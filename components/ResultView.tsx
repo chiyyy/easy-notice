@@ -9,9 +9,9 @@ import { BackButton } from "./BackButton";
 import { BottomTabs, TABS, type TabKey } from "./result/BottomTabs";
 import { InfoCards } from "./result/InfoCards";
 import { Disclaimer, MismatchNotice, SectionDivider, WarningBox } from "./result/Notices";
-import { SourceTab } from "./result/SourceTab";
 import { SummaryCard } from "./result/SummaryCard";
 import { TodoList } from "./result/TodoList";
+import { WordsTab } from "./result/WordsTab";
 
 export function ResultView() {
   const router = useRouter();
@@ -73,7 +73,7 @@ function ResultContent({
         )}
         {tab === "source" && (
           <>
-            <SourceTab maskedText={extract.maskedText} terms={explain.terms} paragraphs={explain.paragraphs} />
+            <WordsTab maskedText={extract.maskedText} terms={explain.terms} paragraphs={explain.paragraphs} />
             <Disclaimer />
           </>
         )}

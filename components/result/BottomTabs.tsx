@@ -4,7 +4,7 @@ export type TabKey = "summary" | "source" | "chat" | "translate";
 
 export const TABS: { key: TabKey; Icon: LucideIcon; label: string }[] = [
   { key: "summary", Icon: FileText, label: "요약" },
-  { key: "source", Icon: BookOpen, label: "원문·용어" },
+  { key: "source", Icon: BookOpen, label: "어려운 말" },
   { key: "chat", Icon: MessageCircle, label: "질문하기" },
   { key: "translate", Icon: Languages, label: "번역" },
 ];

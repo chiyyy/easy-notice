@@ -35,3 +35,21 @@ export function splitByTerms(text: string, words: string[]): SourcePart[] {
   if (last < text.length) parts.push({ kind: "text", text: text.slice(last) });
   return parts;
 }
+
+/**
+ * 용어가 처음 나오는 원문 줄을 짧게 잘라 돌려준다("문서에서는 이렇게 쓰였어요"용).
+ * 가린 개인정보는 "(가린 정보)"로 바꿔 읽기 쉽게 한다.
+ */
+export function findContext(text: string, word: string, radius = 24): string | null {
+  if (word.trim() === "") return null;
+  const line = text.split("\n").find((l) => l.includes(word));
+  if (!line) return null;
+  let snippet = line.trim();
+  const idx = snippet.indexOf(word);
+  if (snippet.length > word.length + radius * 2) {
+    const start = Math.max(0, idx - radius);
+    const end = Math.min(snippet.length, idx + word.length + radius);
+    snippet = `${start > 0 ? "…" : ""}${snippet.slice(start, end)}${end < snippet.length ? "…" : ""}`;
+  }
+  return snippet.split(MASK).join("(가린 정보)");
+}
