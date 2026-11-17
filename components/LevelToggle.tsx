@@ -1,37 +1,36 @@
-import type { Level } from "@/lib/schema";
+"use client";
 
-const OPTIONS: { value: Level; label: string }[] = [
-  { value: "easy", label: "아주 쉽게" },
-  { value: "normal", label: "보통" },
+import type { Level } from "@/lib/schema";
+import { useAnalysis } from "@/lib/store";
+
+const OPTIONS: { value: Level; label: string; hint: string }[] = [
+  { value: "easy", label: "아주 쉽게", hint: "짧고 쉬운 말로" },
+  { value: "normal", label: "보통", hint: "용어에 뜻을 덧붙여" },
 ];
 
-/** 설명 수준 세그먼트 (아주 쉽게 / 보통) */
-export function LevelToggle({
-  value,
-  onChange,
-  disabled,
-}: {
-  value: Level;
-  onChange: (level: Level) => void;
-  disabled?: boolean;
-}) {
+/** 설명 수준 선택 (아주 쉽게 / 보통) */
+export function LevelToggle() {
+  const { level, setLevel } = useAnalysis();
   return (
-    <fieldset disabled={disabled}>
-      <legend className="mb-2 text-sm text-slate-600">설명 수준</legend>
-      <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+    <fieldset>
+      <legend className="mb-3 text-label font-semibold">설명 수준</legend>
+      <div className="grid grid-cols-2 gap-2">
         {OPTIONS.map((opt) => {
-          const selected = opt.value === value;
+          const selected = opt.value === level;
           return (
             <button
               key={opt.value}
               type="button"
               aria-pressed={selected}
-              onClick={() => onChange(opt.value)}
-              className={`min-h-11 rounded-lg font-medium ${
-                selected ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+              onClick={() => setLevel(opt.value)}
+              className={`flex min-h-11 flex-col items-start rounded-xl border px-4 py-3 text-left ${
+                selected ? "border-brand bg-brand-soft" : "border-line"
               }`}
             >
-              {opt.label}
+              <span className={`text-body font-semibold ${selected ? "text-brand" : "text-ink"}`}>
+                {opt.label}
+              </span>
+              <span className="mt-0.5 text-caption text-muted">{opt.hint}</span>
             </button>
           );
         })}

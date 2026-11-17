@@ -1,13 +1,14 @@
 import { splitHighlights } from "@/lib/format";
 
-/** 한눈에 보기: 3줄 요약, 날짜·금액은 굵은 파란색 */
-export function SummaryCard({ summary }: { summary: string[] }) {
+/** 3줄 요약. 날짜·금액은 메인 컬러로 강조 */
+export function SummaryCard({ docLabel, summary }: { docLabel: string; summary: string[] }) {
   return (
-    <section className="rounded-2xl border border-slate-200 p-4" aria-labelledby="summary-title">
-      <h2 id="summary-title" className="mb-2 text-sm font-bold text-slate-500">
+    <section className="px-5 pt-2 pb-7" aria-labelledby="summary-title">
+      <p className="text-label font-medium text-brand">{docLabel}</p>
+      <h2 id="summary-title" className="sr-only">
         한눈에 보기
       </h2>
-      <ul className="flex flex-col gap-2 text-lg leading-relaxed">
+      <ul className="mt-2 flex flex-col gap-2 text-heading leading-relaxed font-medium">
         {summary.map((line, i) => (
           <li key={i}>
             {splitHighlights(line).map((part, j) =>
