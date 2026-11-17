@@ -10,9 +10,21 @@
   --color-foreground: var(--foreground);
   --color-brand: #2563eb;
   --font-sans: var(--font-noto-sans-kr), "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+
+  /* 분석 중 화면의 스캔 라인 */
+  --animate-scan: scan 2.2s ease-in-out infinite;
+  @keyframes scan {
+    0%,
+    100% {
+      top: 0%;
+    }
+    50% {
+      top: calc(100% - 0.25rem);
+    }
+  }
 }
 
-/* 고대비 유지를 위해 다크 모드는 지원하지 않는다. 큰 글씨 모드는 html font-size로 조절(Phase 6). */
+/* 고대비 유지를 위해 다크 모드는 지원하지 않는다. 큰 글씨 모드는 html font-size로 조절(lib/store.tsx). */
 html {
   font-size: 16px;
 }

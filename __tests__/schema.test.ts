@@ -4,8 +4,8 @@ import explainFixture from "@/fixtures/explain.json";
 import {
   ExplainLlmSchema,
   ExplainRequestSchema,
+  ExtractLlmSchema,
   ExtractResponseSchema,
-  OllamaExtractSchema,
 } from "@/lib/schema";
 
 describe("fixtures", () => {
@@ -22,10 +22,14 @@ describe("fixtures", () => {
     for (const t of terms) expect(extractFixture.maskedText).toContain(t.word);
   });
 
-  it("고지서 예시 값: 40,000원, 2026-10-20 기한", () => {
+  it("고지서 예시 값: 감경 후 실제 낼 금액 32,000원, 2026-11-30 기한", () => {
     const { fields } = ExtractResponseSchema.parse(extractFixture);
-    expect(fields.amount).toBe(40000);
-    expect(fields.deadline).toBe("2026-10-20");
+    expect(fields.amount).toBe(32000);
+    expect(fields.deadline).toBe("2026-11-30");
+  });
+
+  it("고지서 예시의 전화번호는 가려져 있다", () => {
+    expect(extractFixture.maskedText).not.toMatch(/0\d{1,2}-\d{3,4}-\d{4}/);
   });
 });
 
@@ -45,7 +49,7 @@ describe("schema", () => {
       items: [],
       contact: null,
     };
-    expect(OllamaExtractSchema.safeParse(bad).success).toBe(false);
+    expect(ExtractLlmSchema.safeParse(bad).success).toBe(false);
   });
 
   it("explain 요청에서 level은 easy/normal만 허용한다", () => {
