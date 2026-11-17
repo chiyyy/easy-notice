@@ -24,6 +24,7 @@
 - 이미지·문서 텍스트 **서버 저장 금지**(DB·파일 없음). localStorage 저장도 금지.
 - 개인정보가 포함될 수 있는 텍스트(full_text, maskedText, 질문 등)는 **console.log 금지**. 에러 로그는 에러 코드·메시지만.
 - API 키는 Route Handler(서버)에서만. 서버 전용 모듈(`lib/openai.ts`, `lib/env.ts` 등)은 `import "server-only"`.
+- OpenAI 호출에는 항상 `store: false` (응답이 API 계정 대시보드에 저장되지 않게. 학교 제공 키라 관리자가 볼 수 있음).
 - Ollama 등 로컬 LLM 코드·설정 금지.
 
 ## 기술 스택 (변경 금지)
@@ -103,8 +104,13 @@ __tests__/                 vitest
 - 모바일 우선(기준 375px), 데스크톱은 가운데 정렬 최대 430px
 - 기본 글자 16px+, 큰 글씨 모드는 html font-size 약 1.2배
 - 터치 영역 44px+, 주요 버튼은 아래쪽에 크게
-- 색상: 메인 #2563eb, 경고 주황, D-day 빨강, 배경 흰색/연회색, 고대비
-- UI 문구도 쉬운 말("업로드"→"사진 올리기", "분석"→"읽는 중")
+- 디자인 방향(토스 앱 같은 담백한 서비스 UI, 2026-11-18 확정):
+  - 메인 컬러는 `#2F6B4F`(brand) 하나, 나머지는 무채색 토큰(ink/sub/muted/line/canvas, app/globals.css). D-day 등 꼭 필요한 경고만 예외
+  - 폰트는 Pretendard만(app/fonts, next/font/local). 크기·굵기 차이로 위계. 글자 크기는 rem 토큰(text-display/heading/body/label/caption)으로, px 금지(큰 글씨 모드)
+  - 금지: 그라데이션, 이모지 아이콘, 모든 요소를 카드로 감싸기, glassmorphism, 장식용 그림자. 구분은 여백과 구분선
+  - 아이콘이 필요하면 SVG(lucide-react 허용)로 내비게이션 위주로만
+  - 버튼·문구는 마케팅 톤 말고 짧고 담백하게
+- UI 문구도 쉬운 말("업로드"→"사진 올리기", "분석"→"읽는 중"). 와이어프레임은 화면 흐름 참고용, 시각 스타일은 위 디자인 방향 우선
 - 분석 중 단계 표시는 실제 진행과 일치(extract 완료 → 1·2단계 체크, explain 진행 중 → 3단계, 완료 → 4단계 후 결과로)
 - 에러 안내: `LOW_QUALITY_IMAGE` "글자가 잘 안 보여요. 밝은 곳에서 문서를 평평하게 놓고 다시 찍어 주세요." / `OPENAI_KEY_MISSING` "API 키가 설정되지 않았어요."(개발자용) / 기타 "잠시 문제가 생겼어요. 다시 시도해 주세요." + "다시 찍기"
 - 접근성: aria-label, alt, 키보드 포커스 표시. 모든 화면에 로딩·빈·에러 상태 처리
