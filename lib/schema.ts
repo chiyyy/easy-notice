@@ -25,8 +25,9 @@ export type Fields = z.infer<typeof FieldsSchema>;
 
 export const ErrorCodeSchema = z.enum([
   "BAD_REQUEST",
-  "OLLAMA_UNAVAILABLE",
-  "OLLAMA_TIMEOUT",
+  "OPENAI_KEY_MISSING",
+  "OPENAI_TIMEOUT",
+  "OPENAI_ERROR",
   "EXTRACT_PARSE_ERROR",
   "LOW_QUALITY_IMAGE",
   "EXPLAIN_FAILED",
@@ -42,8 +43,8 @@ export type ApiError = z.infer<typeof ApiErrorSchema>;
 
 // ───────── 1~2단계: /api/extract ─────────
 
-/** Ollama Vision 모델이 돌려주는 원시 추출 결과 (Ollama `format`에도 사용) */
-export const OllamaExtractSchema = z.object({
+/** GPT 1차(Vision)가 돌려주는 원시 추출 결과 (구조화 출력 스키마로도 사용) */
+export const ExtractLlmSchema = z.object({
   doc_type: DocTypeSchema,
   full_text: z.string(),
   deadline: IsoDateSchema.nullable(),
@@ -52,7 +53,7 @@ export const OllamaExtractSchema = z.object({
   items: z.array(z.string()),
   contact: z.string().nullable(),
 });
-export type OllamaExtract = z.infer<typeof OllamaExtractSchema>;
+export type ExtractLlm = z.infer<typeof ExtractLlmSchema>;
 
 export const ExtractRequestSchema = z.object({
   imageBase64: z.string().min(1),

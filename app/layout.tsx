@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_KR } from "next/font/google";
+import { AnalysisProvider } from "@/lib/store";
 import "./globals.css";
 
 const notoSansKr = Noto_Sans_KR({
@@ -26,7 +27,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="ko" className={`${notoSansKr.variable} h-full antialiased`}>
       <body className="min-h-full bg-slate-100">
         <div className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-white shadow-sm">
-          {children}
+          {/* 클라이언트 Context Provider. children(서버 컴포넌트 페이지)은 그대로 서버에서 렌더링된다. */}
+          <AnalysisProvider>{children}</AnalysisProvider>
         </div>
       </body>
     </html>

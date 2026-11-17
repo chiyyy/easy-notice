@@ -24,6 +24,7 @@
 - 이미지·문서 텍스트 **서버 저장 금지**(DB·파일 없음). localStorage 저장도 금지.
 - 개인정보가 포함될 수 있는 텍스트(full_text, maskedText, 질문 등)는 **console.log 금지**. 에러 로그는 에러 코드·메시지만.
 - API 키는 Route Handler(서버)에서만. 서버 전용 모듈(`lib/openai.ts`, `lib/env.ts` 등)은 `import "server-only"`.
+- OpenAI 호출에는 항상 `store: false` (응답이 API 계정 대시보드에 저장되지 않게. 학교 제공 키라 관리자가 볼 수 있음).
 - Ollama 등 로컬 LLM 코드·설정 금지.
 
 ## 기술 스택 (변경 금지)
