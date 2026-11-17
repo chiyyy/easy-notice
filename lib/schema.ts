@@ -33,7 +33,7 @@ export const ErrorCodeSchema = z.enum([
   "EXPLAIN_FAILED",
   "CHAT_FAILED",
   "TRANSLATE_FAILED",
-  "NOT_IMPLEMENTED", // 아직 구현 전인 실제 LLM 경로 (Phase 2~ 에서 제거)
+  "NOT_IMPLEMENTED", // 아직 구현 전인 경로 (chat·translate)
   "INTERNAL_ERROR",
 ]);
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -55,8 +55,23 @@ export const ExtractLlmSchema = z.object({
 });
 export type ExtractLlm = z.infer<typeof ExtractLlmSchema>;
 
+/**
+ * 모델에 구조화 출력 형식으로 넘기는 "느슨한" 스키마.
+ * 날짜 형식·개수 같은 세부 조건은 모델 스키마에 넣지 않고, 받은 뒤 위의 엄격한 스키마로 검사한다(실패 시 1회 재시도).
+ */
+export const ExtractWireSchema = z.object({
+  doc_type: DocTypeSchema,
+  full_text: z.string(),
+  deadline: z.string().nullable().describe("YYYY-MM-DD"),
+  amount: z.number().nullable().describe("원 단위 정수"),
+  place: z.string().nullable(),
+  items: z.array(z.string()),
+  contact: z.string().nullable(),
+});
+
 export const ExtractRequestSchema = z.object({
-  imageBase64: z.string().min(1),
+  // 1600px JPEG는 보통 1MB 안팎. Vercel 본문 한도(4.5MB)를 넘지 않게 상한을 둔다
+  imageBase64: z.string().min(1).max(4_400_000),
 });
 export type ExtractRequest = z.infer<typeof ExtractRequestSchema>;
 
@@ -85,6 +100,15 @@ export const ExplainLlmSchema = z.object({
   ),
 });
 export type ExplainLlm = z.infer<typeof ExplainLlmSchema>;
+
+/** GPT 2차에 넘기는 느슨한 스키마 (검사는 ExplainLlmSchema로) */
+export const ExplainWireSchema = z.object({
+  summary: z.array(z.string()).describe("정확히 3문장"),
+  paragraphs: z.array(z.object({ title: z.string(), easy: z.string() })),
+  todos: z.array(z.object({ task: z.string(), due: z.string().nullable().describe("YYYY-MM-DD") })),
+  warnings: z.array(z.string()),
+  terms: z.array(z.object({ word: z.string(), meaning: z.string(), example: z.string().nullable() })),
+});
 
 export const DdaySchema = z.object({
   /** 기한까지 남은 일수 (오늘=0, 지났으면 음수) */
