@@ -5,12 +5,11 @@ import { useRef, useState } from "react";
 import { errorMessage, type AppErrorCode } from "@/lib/errors";
 import { ImageError, preprocessImage } from "@/lib/image";
 import { useAnalysis } from "@/lib/store";
-import { LevelToggle } from "./LevelToggle";
 
-/** 촬영 영역 + 앨범 선택 + 설명 수준. 사진을 고르면 전처리 후 바로 분석 화면으로 간다. */
+/** 화면 아래 고정 버튼: 사진 찍기 / 앨범에서 고르기. 고르면 전처리 후 바로 분석 화면으로 간다. */
 export function HomeUploader() {
   const router = useRouter();
-  const { level, setLevel, start } = useAnalysis();
+  const { start } = useAnalysis();
   const cameraRef = useRef<HTMLInputElement>(null);
   const albumRef = useRef<HTMLInputElement>(null);
   const [preparing, setPreparing] = useState(false);
@@ -34,30 +33,28 @@ export function HomeUploader() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="sticky bottom-0 bg-white px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      {error && (
+        <p role="alert" className="mb-3 text-label text-ink">
+          {errorMessage(error)}
+        </p>
+      )}
+
       <button
         type="button"
         onClick={() => cameraRef.current?.click()}
         disabled={preparing}
-        aria-label="문서 촬영하기"
-        className="flex min-h-56 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50/40 px-4 py-8 hover:bg-blue-50 disabled:opacity-60"
+        className="h-14 w-full rounded-xl bg-brand text-heading font-semibold text-white hover:bg-brand-strong disabled:opacity-50"
       >
-        <span className="text-5xl" aria-hidden>
-          📷
-        </span>
-        <span className="text-lg font-bold text-brand">
-          {preparing ? "사진 준비하는 중…" : "문서 촬영하기"}
-        </span>
-        <span className="text-sm text-slate-500">글자가 잘 보이게 평평한 곳에서 찍어 주세요</span>
+        {preparing ? "사진 준비 중" : "사진 찍기"}
       </button>
-
       <button
         type="button"
         onClick={() => albumRef.current?.click()}
         disabled={preparing}
-        className="min-h-14 rounded-2xl border border-blue-200 bg-blue-50 text-lg font-bold text-brand hover:bg-blue-100 disabled:opacity-60"
+        className="mt-1 h-12 w-full rounded-xl text-body font-medium text-sub hover:bg-canvas disabled:opacity-50"
       >
-        <span aria-hidden>🖼 </span>앨범에서 선택
+        앨범에서 고르기
       </button>
 
       {/* 실제 파일 입력은 숨기고 위 버튼으로 연다. capture는 휴대폰에서 바로 카메라를 연다. */}
@@ -80,14 +77,6 @@ export function HomeUploader() {
         aria-hidden
         tabIndex={-1}
       />
-
-      {error && (
-        <p role="alert" className="rounded-xl bg-orange-50 px-4 py-3 text-orange-800">
-          {errorMessage(error)}
-        </p>
-      )}
-
-      <LevelToggle value={level} onChange={setLevel} disabled={preparing} />
     </div>
   );
 }
