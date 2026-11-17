@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { errorMessage, type AppErrorCode } from "@/lib/errors";
 import { ImageError, preprocessImage } from "@/lib/image";
 import { useAnalysis } from "@/lib/store";
@@ -14,6 +14,16 @@ export function HomeUploader() {
   const albumRef = useRef<HTMLInputElement>(null);
   const [preparing, setPreparing] = useState(false);
   const [error, setError] = useState<AppErrorCode | null>(null);
+
+  // Cache Components는 페이지를 떠나도 숨겨 둔 채 상태를 유지한다(React Activity).
+  // 분석 화면으로 넘어가며 홈이 숨겨질 때 "준비 중"·에러 상태를 풀어 두어야, 돌아왔을 때 버튼이 잠겨 있지 않다.
+  useLayoutEffect(
+    () => () => {
+      setPreparing(false);
+      setError(null);
+    },
+    [],
+  );
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
