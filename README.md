@@ -39,16 +39,18 @@
 ![시스템 구조](docs/architecture.png)
 
 ```
-고지서 사진 → Local LLM(Vision) → 개인정보 마스킹 → 프롬프트 생성 → GPT → 쉬운 안내문
-             (내 PC · Ollama)                                  (OpenAI API)
+고지서 사진 → GPT 1차(Vision: 글자 읽기·정보 추출) → 개인정보 마스킹 → 프롬프트 생성 → GPT 2차 → 검증 → 쉬운 안내문
+             └──────────── /api/extract ────────────┘   └────────────── /api/explain ──────────────┘
 ```
 
-AI를 **2단계**로 나눴습니다.
+GPT 호출을 **"읽기"와 "쉽게 쓰기" 2단계**로 나눴습니다.
 
-- **Local LLM (Vision):** 내 PC에서 이미지를 읽어 텍스트를 추출하고 기한·금액 등을 JSON으로 정리합니다.
-- **GPT:** 개인정보를 가린 텍스트를 받아 쉬운 안내문, 할 일, 용어 풀이를 만듭니다.
+- **GPT 1차 (Vision):** 문서 이미지에서 글자를 그대로 옮기고, 문서 종류·기한·금액 등을 JSON으로 정리합니다.
+- **서버:** 주민등록번호·전화번호·계좌번호·이름 등을 정규식으로 `[개인정보]`로 가린 뒤, 문서 종류와 설명 수준에 맞는 프롬프트를 만듭니다.
+- **GPT 2차:** 마스킹된 텍스트만 받아 3줄 요약, 할 일, 주의 알림, 용어 풀이를 만듭니다.
+- **검증:** zod로 형식을 확인하고, 1차에서 뽑은 날짜·금액과 2차 결과를 코드로 비교해 다르면 원문 값을 우선합니다.
 
-그래서 **원본 이미지가 외부 서버로 나가지 않고**, GPT에는 마스킹된 텍스트만 전송됩니다.
+**사진은 서버에 저장하지 않고**, 이미지는 1차 호출에만 쓰입니다. 쉬운 안내문 생성·질문·번역에는 마스킹된 텍스트만 전송됩니다.
 
 ---
 
@@ -64,34 +66,35 @@ AI를 **2단계**로 나눴습니다.
 
 | 구분 | 기술 |
 |---|---|
-| Frontend / Backend | Next.js (App Router), TypeScript, Tailwind CSS, API Routes |
-| Local LLM | Ollama + Vision 모델 (Qwen2.5-VL 등, 비교 후 확정) |
-| Generative AI | OpenAI API (GPT-4o-mini 등) |
-| 기타 | zod (출력 검증), Web Speech API (TTS) |
+| Frontend / Backend | Next.js (App Router), TypeScript, Tailwind CSS, Route Handlers |
+| Generative AI | OpenAI API (GPT-4o-mini, Vision + 구조화 출력) |
+| 기타 | zod (출력 검증), Web Speech API (TTS), vitest (테스트) |
+| 배포 | Vercel |
 
 ---
 
 ## 🚀 실행 방법
 
-**요구 사항:** Node.js 20+, [Ollama](https://ollama.com), OpenAI API 키
+**요구 사항:** Node.js 20+, OpenAI API 키
 
 ```bash
 git clone https://github.com/chiyyy/easy-notice.git
 cd easy-notice
 npm install
-ollama pull qwen2.5vl:7b    # 확정 모델로 변경 예정
 ```
 
-`.env.local` 파일 생성:
+`.env.example`을 복사해 `.env.local` 파일 생성:
 
 ```env
 OPENAI_API_KEY=sk-...
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_VISION_MODEL=qwen2.5vl:7b
+OPENAI_MODEL=gpt-4o-mini
+MOCK_LLM=false   # true면 API 키 없이 예시 결과(과태료 고지서)로 화면을 확인할 수 있어요
 ```
 
 ```bash
-npm run dev   # http://localhost:3000
+npm run dev                 # http://localhost:3000
+npm run dev -- -H 0.0.0.0   # 같은 와이파이의 휴대폰에서 접속
+npm test                    # 단위 테스트
 ```
 
 ---
@@ -101,10 +104,10 @@ npm run dev   # http://localhost:3000
 | 기간 | 목표 |
 |---|---|
 | 9/30 ~ 10/13 | 기획, 화면 설계, AI 구조 확정 ✅ |
-| 10/14 ~ 11/3 | 구현 (로컬 Vision → GPT 연동 → 기능 1~4), MVP 완성 |
-| 11/4 ~ 11/17 | 테스트·개선, 발표 준비 |
+| 10/14 ~ 11/17 | 구현 (GPT 1차·2차 연동, 기능 1·2), 발표 준비 |
 | **11/18** | 수업 프로젝트 발표 |
-| 11/19 ~ **12/2** | 고도화, 교내 경진대회 |
+| 11/19 ~ 11/25 | 용어 풀이·질문하기 (기능 3·4) |
+| 11/26 ~ **12/2** | 음성 읽기·번역, 고도화, 교내 경진대회 |
 
 ---
 
