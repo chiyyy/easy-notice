@@ -1,12 +1,14 @@
+import { Check } from "lucide-react";
 import type { Stage } from "@/lib/store";
 
 type StepStatus = "done" | "active" | "pending";
 
+// tag는 발표 때 구조(GPT 1차·2차)를 보여 주기 위한 작은 보조 표시
 const STEPS = [
-  { label: "문서 글자 읽기", activeLabel: "문서 글자 읽는 중…", tag: "GPT 1차" },
-  { label: "개인정보 가리기", activeLabel: "개인정보 가리는 중…", tag: null },
-  { label: "쉬운 말로 바꾸기", activeLabel: "쉬운 말로 바꾸는 중…", tag: "GPT 2차" },
-  { label: "할 일 정리하기", activeLabel: "할 일 정리하는 중…", tag: null },
+  { label: "문서 글자 읽기", tag: "GPT 1차" },
+  { label: "개인정보 가리기", tag: null },
+  { label: "쉬운 말로 바꾸기", tag: "GPT 2차" },
+  { label: "할 일 정리하기", tag: null },
 ] as const;
 
 /**
@@ -28,37 +30,44 @@ export function stepStatuses(stage: Stage): StepStatus[] {
   }
 }
 
+function StepMark({ status }: { status: StepStatus }) {
+  if (status === "done") return <Check className="size-5 text-brand" strokeWidth={2.5} aria-hidden />;
+  if (status === "active")
+    return (
+      <span
+        className="size-4 rounded-full border-2 border-line border-t-brand motion-safe:animate-spin"
+        aria-hidden
+      />
+    );
+  return <span className="size-1.5 rounded-full bg-line" aria-hidden />;
+}
+
 export function ProgressSteps({ stage }: { stage: Stage }) {
   const statuses = stepStatuses(stage);
   return (
-    <ol className="flex flex-col gap-4" aria-label="진행 단계">
+    <ol aria-label="진행 단계">
       {STEPS.map((step, i) => {
         const status = statuses[i];
         return (
-          <li key={step.label} className="flex items-center gap-3" aria-current={status === "active" ? "step" : undefined}>
-            <span
-              className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                status === "done"
-                  ? "bg-green-500 text-white"
-                  : status === "active"
-                    ? "bg-brand text-white motion-safe:animate-pulse"
-                    : "bg-slate-100 text-slate-400"
-              }`}
-              aria-hidden
-            >
-              {status === "done" ? "✓" : i + 1}
+          <li
+            key={step.label}
+            className="flex min-h-12 items-center gap-3"
+            aria-current={status === "active" ? "step" : undefined}
+          >
+            <span className="flex size-6 shrink-0 items-center justify-center">
+              <StepMark status={status} />
             </span>
             <span
-              className={`flex-1 ${
-                status === "active" ? "font-bold text-slate-900" : status === "done" ? "text-slate-800" : "text-slate-400"
+              className={`flex-1 text-body ${
+                status === "active" ? "font-semibold text-ink" : status === "done" ? "text-ink" : "text-muted"
               }`}
             >
-              {status === "active" ? step.activeLabel : step.label}
+              {step.label}
               <span className="sr-only">
                 {status === "done" ? " (완료)" : status === "active" ? " (진행 중)" : " (대기)"}
               </span>
             </span>
-            {step.tag && <span className="text-xs text-slate-400">{step.tag}</span>}
+            {step.tag && <span className="text-caption text-muted">{step.tag}</span>}
           </li>
         );
       })}

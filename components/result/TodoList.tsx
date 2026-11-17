@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useState } from "react";
 import { formatShortDate } from "@/lib/format";
 import type { ExplainResponse } from "@/lib/schema";
@@ -10,25 +11,34 @@ export function TodoList({ todos }: { todos: ExplainResponse["todos"] }) {
   if (todos.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-slate-200 p-4" aria-labelledby="todo-title">
-      <h2 id="todo-title" className="mb-2 font-bold">
-        <span aria-hidden>✅ </span>해야 할 일
+    <section className="px-5 py-6" aria-labelledby="todo-title">
+      <h2 id="todo-title" className="text-heading font-bold">
+        해야 할 일
       </h2>
-      <ul className="flex flex-col">
+      <ul className="mt-2">
         {todos.map((todo, i) => (
           <li key={i}>
-            <label className="flex min-h-11 cursor-pointer items-start gap-3 py-2">
+            <label className="flex min-h-12 cursor-pointer items-start gap-3 py-2.5">
               <input
                 type="checkbox"
                 checked={checked[i]}
                 onChange={() => setChecked((prev) => prev.map((v, j) => (j === i ? !v : v)))}
-                className="mt-1 size-5 shrink-0 accent-brand"
+                className="peer sr-only"
               />
-              <span className={checked[i] ? "text-slate-400 line-through" : ""}>
+              {/* 실제 체크박스는 숨기고 같은 상태를 그린다. 키보드 포커스는 peer로 표시 */}
+              <span
+                className={`mt-0.5 flex size-[1.375rem] shrink-0 items-center justify-center rounded-full border-2 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand ${
+                  checked[i] ? "border-brand bg-brand" : "border-line"
+                }`}
+                aria-hidden
+              >
+                {checked[i] && <Check className="size-3.5 text-white" strokeWidth={3} />}
+              </span>
+              <span className={`text-body leading-relaxed ${checked[i] ? "text-muted line-through" : "text-ink"}`}>
                 {todo.task}
                 {/* 할 일 문장에 이미 날짜가 있으면 중복해서 붙이지 않는다 */}
                 {todo.due && !todo.task.includes(formatShortDate(todo.due)) && (
-                  <span className="ml-1 text-sm text-slate-500">({formatShortDate(todo.due)}까지)</span>
+                  <span className="ml-1.5 text-label text-muted">{formatShortDate(todo.due)}까지</span>
                 )}
               </span>
             </label>
