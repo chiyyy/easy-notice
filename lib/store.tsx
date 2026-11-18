@@ -28,6 +28,12 @@ type AnalysisState = {
 };
 
 type AnalysisContextValue = AnalysisState & {
+  /**
+   * 분석을 시작할 때마다 1씩 늘어나는 번호.
+   * Cache Components에서는 페이지를 떠나도 컴포넌트가 숨겨진 채 상태가 남아 있으므로(React Activity),
+   * 결과 화면은 이 값을 key로 써서 새 분석마다 탭·체크 상태를 초기화한다.
+   */
+  runId: number;
   level: Level;
   setLevel: (level: Level) => void;
   largeText: boolean;
@@ -48,6 +54,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AnalysisState>(INITIAL);
   const [level, setLevel] = useState<Level>("easy");
   const [largeText, setLargeText] = useState(false);
+  const [runId, setRunId] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
 
   const run = useCallback(
@@ -57,6 +64,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       abortRef.current = controller;
       const { signal } = controller;
 
+      setRunId((n) => n + 1);
       setState({ ...INITIAL, stage: "extracting", image });
 
       const extract = await postJson(
@@ -106,6 +114,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AnalysisContextValue>(
     () => ({
       ...state,
+      runId,
       level,
       setLevel,
       largeText,
@@ -114,7 +123,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       retry,
       reset,
     }),
-    [state, level, largeText, run, retry, reset],
+    [state, runId, level, largeText, run, retry, reset],
   );
 
   return <AnalysisContext value={value}>{children}</AnalysisContext>;
