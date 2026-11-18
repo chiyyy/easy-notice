@@ -85,3 +85,18 @@ export function checkExplain(llm: ExplainLlm, maskedText: string, fields: Fields
 
   return { result: { ...llm, todos, terms }, mismatchWarning: mismatch };
 }
+
+// ───────── 질문하기 근거 ─────────
+
+const squash = (s: string) => s.replace(/\s+/g, " ").trim();
+
+/**
+ * GPT가 준 근거 문장이 원문에 실제로 있는지 확인한다(공백 차이는 무시).
+ * 원문에 없으면(고쳐 쓴 문장 등) 잘못된 근거를 보여 주지 않도록 null.
+ */
+export function verifyEvidence(evidence: string | null, maskedText: string): string | null {
+  if (!evidence) return null;
+  const cleaned = squash(evidence.replace(/^["'“”‘’「」『』]+|["'“”‘’「」『』]+$/g, ""));
+  if (cleaned.length < 2) return null;
+  return squash(maskedText).includes(cleaned) ? cleaned : null;
+}

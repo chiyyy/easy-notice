@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import explainFixture from "@/fixtures/explain.json";
 import extractFixture from "@/fixtures/extract.json";
 import { ExplainLlmSchema, ExtractResponseSchema, type ExplainLlm } from "@/lib/schema";
-import { checkExplain, findAmounts, findDates, parseKoreanAmount } from "@/lib/validate";
+import { checkExplain, findAmounts, findDates, parseKoreanAmount, verifyEvidence } from "@/lib/validate";
 
 const llm = ExplainLlmSchema.parse(explainFixture);
 const { maskedText, fields } = ExtractResponseSchema.parse(extractFixture);
@@ -60,5 +60,23 @@ describe("checkExplain", () => {
     const { result } = checkExplain(withFake, maskedText, fields);
     expect(result.terms.map((t) => t.word)).not.toContain("체납처분");
     expect(result.terms).toHaveLength(llm.terms.length);
+  });
+});
+
+describe("verifyEvidence", () => {
+  it("원문에 있는 문장은 그대로 통과 (공백 차이 무시)", () => {
+    expect(verifyEvidence("납부방법: 금융기관,  위택스(카드·계좌이체), 가상계좌", maskedText)).toBe(
+      "납부방법: 금융기관, 위택스(카드·계좌이체), 가상계좌",
+    );
+  });
+
+  it("앞뒤 따옴표는 벗겨서 확인", () => {
+    expect(verifyEvidence('"과태료 금액: 40,000원"', maskedText)).toBe("과태료 금액: 40,000원");
+  });
+
+  it("고쳐 쓴 문장이나 없는 문장은 null", () => {
+    expect(verifyEvidence("카드로 낼 수 있습니다", maskedText)).toBeNull();
+    expect(verifyEvidence(null, maskedText)).toBeNull();
+    expect(verifyEvidence("", maskedText)).toBeNull();
   });
 });

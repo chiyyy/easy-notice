@@ -31,3 +31,4 @@ export function buildExplainInput(maskedText: string, fields: Fields): string {
   ].join("\n");
   return `[문서 원문]\n${maskedText}\n\n[원문에서 뽑은 핵심 값 — 날짜·금액은 이 값과 원문을 따른다]\n${ref}`;
 }
+export { buildChatInstructions } from "./chat";

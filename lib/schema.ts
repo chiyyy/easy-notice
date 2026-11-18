@@ -137,7 +137,7 @@ export type ExplainResponse = z.infer<typeof ExplainResponseSchema>;
 
 export const ChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
-  content: z.string(),
+  content: z.string().max(2000),
 });
 export type ChatMessage = z.infer<typeof ChatMessageSchema>;
 
@@ -145,6 +145,7 @@ export const ChatRequestSchema = z.object({
   maskedText: z.string().min(1),
   question: z.string().min(1).max(500),
   history: z.array(ChatMessageSchema).max(20).optional(),
+  level: LevelSchema.optional(),
 });
 export type ChatRequest = z.infer<typeof ChatRequestSchema>;
 
@@ -153,6 +154,12 @@ export const ChatResponseSchema = z.object({
   evidence: z.string().nullable(),
 });
 export type ChatResponse = z.infer<typeof ChatResponseSchema>;
+
+/** GPT에 넘기는 질문·답변 스키마 (근거는 받은 뒤 원문에 실제로 있는지 코드로 확인) */
+export const ChatWireSchema = z.object({
+  answer: z.string(),
+  evidence: z.string().nullable().describe("답의 근거가 된 원문 문장을 글자 그대로. 없으면 null"),
+});
 
 // ───────── /api/translate (선택) ─────────
 

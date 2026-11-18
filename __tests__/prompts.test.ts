@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import extractFixture from "@/fixtures/extract.json";
-import { buildExplainInput, buildExplainInstructions } from "@/lib/prompts";
+import { buildChatInstructions, buildExplainInput, buildExplainInstructions } from "@/lib/prompts";
 import { ExtractResponseSchema } from "@/lib/schema";
 
 const { maskedText, fields } = ExtractResponseSchema.parse(extractFixture);
@@ -45,5 +45,20 @@ describe("buildExplainInput", () => {
     const input = buildExplainInput("본문", { deadline: null, amount: null, place: null, items: [], contact: null });
     expect(input).toContain("기한: 없음");
     expect(input).toContain("준비물: 없음");
+  });
+});
+
+describe("buildChatInstructions", () => {
+  it("문서를 앞에, 근거·말투 규칙을 뒤에 둔다", () => {
+    const p = buildChatInstructions(maskedText, "easy");
+    expect(p).toContain(maskedText);
+    expect(p.indexOf("[문서 끝]")).toBeLessThan(p.indexOf("말투"));
+    expect(p).toContain("문서에 나와 있지 않아요");
+    expect(p).toContain("evidence");
+  });
+
+  it("설명 수준에 따라 말투 규칙이 바뀐다", () => {
+    expect(buildChatInstructions(maskedText, "easy")).toContain("30자 안팎");
+    expect(buildChatInstructions(maskedText, "normal")).toContain("괄호로 뜻");
   });
 });

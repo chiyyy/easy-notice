@@ -5,8 +5,11 @@ import { useEffect, useState } from "react";
 import { docTypeLabel } from "@/lib/format";
 import type { ExplainResponse, ExtractResponse } from "@/lib/schema";
 import { useAnalysis } from "@/lib/store";
+import { suggestionsFor } from "@/lib/suggestions";
+import { useChat } from "@/lib/use-chat";
 import { BackButton } from "./BackButton";
 import { BottomTabs, TABS, type TabKey } from "./result/BottomTabs";
+import { ChatTab } from "./result/ChatTab";
 import { InfoCards } from "./result/InfoCards";
 import { Disclaimer, MismatchNotice, SectionDivider, WarningBox } from "./result/Notices";
 import { SummaryCard } from "./result/SummaryCard";
@@ -43,6 +46,9 @@ function ResultContent({
   onBack: () => void;
 }) {
   const [tab, setTab] = useState<TabKey>("summary");
+  const { level } = useAnalysis();
+  // 대화는 여기서 들고 있어서 탭을 바꿔도 남는다
+  const chat = useChat(extract.maskedText, level);
   const tabLabel = TABS.find((t) => t.key === tab)?.label ?? "";
 
   function changeTab(next: TabKey) {
@@ -77,11 +83,13 @@ function ResultContent({
             <Disclaimer />
           </>
         )}
-        {(tab === "chat" || tab === "translate") && (
-          <div className="px-5 pt-16 text-center">
-            <p className="text-body font-semibold">아직 준비 중이에요</p>
-            <p className="mt-1 text-label text-muted">{tabLabel} 기능은 곧 추가돼요.</p>
-          </div>
+        {tab === "chat" && (
+          <ChatTab
+            entries={chat.entries}
+            pending={chat.pending}
+            suggestions={suggestionsFor(extract.docType)}
+            onSend={chat.send}
+          />
         )}
       </main>
 
