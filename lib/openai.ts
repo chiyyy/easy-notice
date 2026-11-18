@@ -46,6 +46,8 @@ type GenerateOptions<W extends z.ZodType> = {
   wireSchema: W;
   instructions: string;
   content: ResponseInputContent[];
+  /** 이전 대화 (질문하기용). 마지막 사용자 메시지(content) 앞에 붙는다 */
+  history?: { role: "user" | "assistant"; content: string }[];
   temperature: number;
 };
 
@@ -77,7 +79,10 @@ export async function generateValidated<W extends z.ZodType, T>(
         store: false,
         temperature: opts.temperature,
         instructions: opts.instructions,
-        input: [{ role: "user", content: opts.content }],
+        input: [
+          ...(opts.history ?? []).map((m) => ({ role: m.role, content: m.content })),
+          { role: "user" as const, content: opts.content },
+        ],
         text: { format: zodTextFormat(opts.wireSchema, opts.name) },
       });
       const checked = strictSchema.safeParse(res.output_parsed);
