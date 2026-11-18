@@ -62,3 +62,10 @@ describe("schema", () => {
     expect(ExplainRequestSchema.safeParse(req).success).toBe(false);
   });
 });
+
+describe("chat fixture", () => {
+  it("MOCK 답변의 근거 문장은 모두 예시 원문에 실제로 있다", async () => {
+    const chat = (await import("@/fixtures/chat.json")).default;
+    for (const a of chat.answers) expect(extractFixture.maskedText).toContain(a.evidence);
+  });
+});
