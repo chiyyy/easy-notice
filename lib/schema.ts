@@ -21,6 +21,16 @@ export const FieldsSchema = z.object({
 });
 export type Fields = z.infer<typeof FieldsSchema>;
 
+/** 요청으로 받는 마스킹 원문 (한 장짜리 문서는 보통 5천 자 이하) */
+const MaskedTextInputSchema = z.string().min(1).max(20_000);
+
+/** 요청으로 받는 핵심 정보 (응답용 FieldsSchema에 길이 제한을 더한 것) */
+const FieldsInputSchema = FieldsSchema.extend({
+  place: z.string().max(500).nullable(),
+  items: z.array(z.string().max(500)).max(30),
+  contact: z.string().max(500).nullable(),
+});
+
 // ───────── 에러 ─────────
 
 export const ErrorCodeSchema = z.enum([
@@ -120,8 +130,8 @@ export type Dday = z.infer<typeof DdaySchema>;
 
 export const ExplainRequestSchema = z.object({
   docType: DocTypeSchema,
-  maskedText: z.string().min(1),
-  fields: FieldsSchema,
+  maskedText: MaskedTextInputSchema,
+  fields: FieldsInputSchema,
   level: LevelSchema,
 });
 export type ExplainRequest = z.infer<typeof ExplainRequestSchema>;
@@ -142,7 +152,7 @@ export const ChatMessageSchema = z.object({
 export type ChatMessage = z.infer<typeof ChatMessageSchema>;
 
 export const ChatRequestSchema = z.object({
-  maskedText: z.string().min(1),
+  maskedText: MaskedTextInputSchema,
   question: z.string().min(1).max(500),
   history: z.array(ChatMessageSchema).max(20).optional(),
   level: LevelSchema.optional(),

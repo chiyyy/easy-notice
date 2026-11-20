@@ -103,10 +103,12 @@ export function verifyEvidence(evidence: string | null, maskedText: string): str
 
 // ───────── 번역 ─────────
 
-/** 번역문 속 숫자들 ("32,000 won", "32.000 won", "32 000" → 32000) */
+/** 번역문 속 숫자들 ("32,000 won", "32.000 won" → 32000). 천 단위 구분자 뒤에는 숫자 3개가 와야 한다 */
 function numbersIn(text: string): Set<number> {
   const found = new Set<number>();
-  for (const m of text.matchAll(/\d[\d,.  ]*\d|\d/g)) found.add(Number(m[0].replace(/\D/g, "")));
+  for (const m of text.matchAll(/\d{1,3}(?:[,.\u00a0\u202f]\d{3})+(?!\d)|\d+/g)) {
+    found.add(Number(m[0].replace(/\D/g, "")));
+  }
   return found;
 }
 
