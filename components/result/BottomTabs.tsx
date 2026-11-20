@@ -1,12 +1,12 @@
-import { BookOpen, FileText, MessageCircle, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Languages, MessageCircle, type LucideIcon } from "lucide-react";
 
-// 번역 탭은 기능이 완성되면 다시 추가한다 (Phase 7)
-export type TabKey = "summary" | "source" | "chat";
+export type TabKey = "summary" | "source" | "chat" | "translate";
 
 export const TABS: { key: TabKey; Icon: LucideIcon; label: string }[] = [
   { key: "summary", Icon: FileText, label: "요약" },
   { key: "source", Icon: BookOpen, label: "어려운 말" },
   { key: "chat", Icon: MessageCircle, label: "질문하기" },
+  { key: "translate", Icon: Languages, label: "번역" },
 ];
 
 /** 결과 화면 하단 탭 */
@@ -16,7 +16,7 @@ export function BottomTabs({ active, onChange }: { active: TabKey; onChange: (ta
       className="sticky bottom-0 border-t border-line bg-white pb-[env(safe-area-inset-bottom)]"
       aria-label="결과 보기 방식"
     >
-      <ul className="grid grid-cols-3" role="tablist">
+      <ul className="grid grid-cols-4" role="tablist">
         {TABS.map(({ key, Icon, label }) => {
           const selected = key === active;
           return (
