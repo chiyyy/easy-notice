@@ -1,16 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { docTypeLabel } from "@/lib/format";
+import { buildSpeechLines } from "@/lib/speech";
 import type { ExplainResponse, ExtractResponse } from "@/lib/schema";
 import { useAnalysis } from "@/lib/store";
 import { suggestionsFor } from "@/lib/suggestions";
 import { useChat } from "@/lib/use-chat";
 import { BackButton } from "./BackButton";
+import { FontSizeToggle } from "./FontSizeToggle";
 import { BottomTabs, TABS, type TabKey } from "./result/BottomTabs";
 import { ChatTab } from "./result/ChatTab";
 import { InfoCards } from "./result/InfoCards";
+import { ListenButton } from "./result/ListenButton";
 import { Disclaimer, MismatchNotice, SectionDivider, WarningBox } from "./result/Notices";
 import { SummaryCard } from "./result/SummaryCard";
 import { TodoList } from "./result/TodoList";
@@ -50,6 +53,8 @@ function ResultContent({
   // 대화는 여기서 들고 있어서 탭을 바꿔도 남는다
   const chat = useChat(extract.maskedText, level);
   const tabLabel = TABS.find((t) => t.key === tab)?.label ?? "";
+  const docLabel = docTypeLabel(extract.docType);
+  const speechLines = useMemo(() => buildSpeechLines(docLabel, explain), [docLabel, explain]);
 
   function changeTab(next: TabKey) {
     setTab(next);
@@ -58,16 +63,21 @@ function ResultContent({
 
   return (
     <>
-      <header className="sticky top-0 z-10 flex h-14 items-center gap-1 bg-white px-1">
+      <header className="sticky top-0 z-10 flex h-14 items-center gap-1 bg-white pr-2 pl-1">
         <BackButton label="처음으로 돌아가서 다른 문서 찍기" onClick={onBack} />
-        <h1 className="text-heading font-bold">{tab === "summary" ? "읽은 결과" : tabLabel}</h1>
+        <h1 className="flex-1 truncate text-heading font-bold">{tab === "summary" ? "읽은 결과" : tabLabel}</h1>
+        <FontSizeToggle />
       </header>
 
       <main id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} className="flex flex-1 flex-col">
         {tab === "summary" && (
           <>
             {explain.mismatchWarning && <MismatchNotice />}
-            <SummaryCard docLabel={docTypeLabel(extract.docType)} summary={explain.summary} />
+            <SummaryCard
+              docLabel={docLabel}
+              summary={explain.summary}
+              action={<ListenButton lines={speechLines} />}
+            />
             <SectionDivider />
             <InfoCards fields={explain.fields} dday={explain.dday} />
             <SectionDivider />
