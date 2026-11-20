@@ -69,3 +69,12 @@ describe("chat fixture", () => {
     for (const a of chat.answers) expect(extractFixture.maskedText).toContain(a.evidence);
   });
 });
+
+describe("요청 크기 제한", () => {
+  it("아주 긴 원문은 explain·chat 요청에서 거절한다", async () => {
+    const { ChatRequestSchema } = await import("@/lib/schema");
+    const long = "가".repeat(20_001);
+    expect(ChatRequestSchema.safeParse({ maskedText: long, question: "q" }).success).toBe(false);
+    expect(ChatRequestSchema.safeParse({ maskedText: "가".repeat(20_000), question: "q" }).success).toBe(true);
+  });
+});

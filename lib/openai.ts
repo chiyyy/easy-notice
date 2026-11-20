@@ -12,6 +12,10 @@ import { env } from "./env";
 import type { ErrorCode } from "./schema";
 
 const TIMEOUT_MS = 45_000;
+/** 재시도까지 합친 전체 시간 한도. 라우트의 maxDuration(60초)보다 조금 짧게 */
+const TOTAL_BUDGET_MS = 55_000;
+/** 남은 시간이 이보다 적으면 다시 요청하지 않는다 */
+const MIN_ATTEMPT_MS = 10_000;
 
 export class LlmError extends Error {
   readonly code: ErrorCode;
@@ -72,19 +76,26 @@ export async function generateValidated<W extends z.ZodType, T>(
   attempts = 2,
 ): Promise<T | null> {
   const openai = getClient();
+  const startedAt = Date.now();
   for (let i = 0; i < attempts; i++) {
+    const remaining = TOTAL_BUDGET_MS - (Date.now() - startedAt);
+    if (i > 0 && remaining < MIN_ATTEMPT_MS) break;
     try {
-      const res = await openai.responses.parse({
-        model: env.openaiModel,
-        store: false,
-        temperature: opts.temperature,
-        instructions: opts.instructions,
-        input: [
-          ...(opts.history ?? []).map((m) => ({ role: m.role, content: m.content })),
-          { role: "user" as const, content: opts.content },
-        ],
-        text: { format: zodTextFormat(opts.wireSchema, opts.name) },
-      });
+      const res = await openai.responses.parse(
+        {
+          model: env.openaiModel,
+          store: false,
+          temperature: opts.temperature,
+          instructions: opts.instructions,
+          input: [
+            ...(opts.history ?? []).map((m) => ({ role: m.role, content: m.content })),
+            { role: "user" as const, content: opts.content },
+          ],
+          text: { format: zodTextFormat(opts.wireSchema, opts.name) },
+        },
+        // 남은 시간만큼만 기다린다
+        { timeout: Math.min(TIMEOUT_MS, remaining) },
+      );
       const checked = strictSchema.safeParse(res.output_parsed);
       if (checked.success) return checked.data;
       console.error(`[openai:${opts.name}] 형식 검사 실패 (시도 ${i + 1}/${attempts})`);

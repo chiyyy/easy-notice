@@ -48,7 +48,11 @@ export function useChat(maskedText: string, level: Level) {
         ChatResponseSchema,
         controller.signal,
       );
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) {
+        // 화면이 숨겨지며 취소된 경우: 다시 돌아왔을 때 입력창이 잠겨 있지 않게
+        setPending(false);
+        return;
+      }
 
       setEntries((prev) => [
         ...prev,

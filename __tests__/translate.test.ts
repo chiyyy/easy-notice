@@ -101,3 +101,10 @@ describe("cleanKoreanGloss", () => {
     expect(cleanKoreanGloss("pay by card (or bank transfer)", src)).toBe("pay by card (or bank transfer)");
   });
 });
+
+describe("amountsKept 숫자 경계", () => {
+  it("날짜 뒤 쉼표와 금액을 하나의 숫자로 붙여 읽지 않는다", () => {
+    expect(amountsKept(["11월 30일까지 32,000원 내기"], ["By November 30, 32,000 won"])).toBe(true);
+    expect(amountsKept(["32,000원"], ["pay 32000 won"])).toBe(true);
+  });
+});
