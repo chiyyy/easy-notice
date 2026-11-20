@@ -50,11 +50,11 @@ MOCK_LLM=false
 app/
   page.tsx                 ① 홈·문서 촬영
   analyzing/page.tsx       ② 분석 중
-  result/page.tsx          ③ 결과 (탭: 요약 / 원문·용어 / 질문하기 / 번역)
+  result/page.tsx          ③ 결과 (탭: 요약 / 어려운 말 / 질문하기 / 번역)
   api/extract/route.ts     1~2단계: GPT 1차(Vision) + 마스킹
   api/explain/route.ts     3~5단계: 프롬프트 + GPT 2차 + 검증
   api/chat/route.ts        문서 기반 Q&A
-  api/translate/route.ts   번역 (선택)
+  api/translate/route.ts   번역 (영어·중국어·베트남어)
 components/                작은 단위 UI 컴포넌트 ('use client'는 필요한 곳만)
 lib/
   openai.ts, env.ts, http.ts, mock.ts   server-only
@@ -76,7 +76,7 @@ __tests__/                 vitest
   - 추출 프롬프트: OCR 도우미, 글자를 빠짐없이 그대로(요약·수정 금지), 값 없으면 null, 추측 금지.
 - **/api/explain**: 프롬프트 조립(공통 + 문서 종류 + 수준) → GPT 2차 구조화 출력(temperature 0.2) → zod 실패 시 1회 재요청, 그래도 실패면 `EXPLAIN_FAILED` → 교차 검증(불일치 시 1차 값 우선 + `mismatchWarning`) → maskedText에 없는 term 제거 → D-day(Asia/Seoul, 오늘=D-day, 지나면 "기한 지남").
 - **/api/chat**: 문서 내용만 근거, 근거 원문 문장 인용. 없으면 "문서에 나와 있지 않아요. ○○에 문의해 보세요" + evidence null.
-- **/api/translate**: 자연스럽게 번역, 행정 용어는 괄호에 한국어 원어 병기.
+- **/api/translate**: 2차 결과(요약·할 일·주의)만 번역(원문·이미지 X). 문장 개수 유지(어기면 1회 재요청 → `TRANSLATE_FAILED`), 행정 용어는 괄호에 한국어 원어 병기(원문에 없는 원어 괄호는 코드에서 제거), 금액 숫자 유지 확인(`numberMismatch`). 언어별 결과는 클라이언트 메모리에 보관.
 
 ## API 계약 요약
 | 엔드포인트 | 요청 | 응답 |
@@ -84,9 +84,9 @@ __tests__/                 vitest
 | `POST /api/extract` | `{ imageBase64 }` | `{ docType, maskedText, fields:{deadline,amount,place,items,contact}, maskedCount }` |
 | `POST /api/explain` | `{ docType, maskedText, fields, level:"easy"\|"normal" }` | `{ summary[3], paragraphs, todos, warnings, terms, fields, dday, mismatchWarning }` |
 | `POST /api/chat` | `{ maskedText, question, history? }` | `{ answer, evidence \| null }` |
-| `POST /api/translate` | `{ result, lang:"en"\|"zh"\|"vi" }` | 번역된 요약·할 일·주의 |
+| `POST /api/translate` | `{ result:{summary,todos,warnings}, lang:"en"\|"zh"\|"vi" }` | `{ summary, todos, warnings, numberMismatch }` |
 
-에러 코드: `OPENAI_KEY_MISSING`, `OPENAI_TIMEOUT`(45초), `OPENAI_ERROR`, `EXTRACT_PARSE_ERROR`, `LOW_QUALITY_IMAGE`(full_text 30자 미만), `EXPLAIN_FAILED`.
+에러 코드: `OPENAI_KEY_MISSING`, `OPENAI_TIMEOUT`(45초), `OPENAI_ERROR`, `EXTRACT_PARSE_ERROR`, `LOW_QUALITY_IMAGE`(full_text 30자 미만), `EXPLAIN_FAILED`, `CHAT_FAILED`, `TRANSLATE_FAILED`.
 
 ## 마스킹 규칙 (lib/mask.ts → `[개인정보]`, 치환 개수 반환, 단위 테스트 필수)
 주민/외국인등록번호(6-7, 하이픈 없는 13자리 포함, 뒷자리 첫 숫자 1~8) · 휴대전화 01X(하이픈/공백 유무 모두) · 일반 전화 0XX(대표번호 1588-XXXX, 120 등은 유지) · 카드 4-4-4-4 · 계좌(하이픈 포함 10~14자리, "계좌" 근처 긴 숫자) · 라벨(성명/이름/납부자/임차인/임대인/수신인/환자명) 뒤 2~4자 한글 이름 · 주소는 상세(동·호수·번지)만.

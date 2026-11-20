@@ -100,3 +100,40 @@ export function verifyEvidence(evidence: string | null, maskedText: string): str
   if (cleaned.length < 2) return null;
   return squash(maskedText).includes(cleaned) ? cleaned : null;
 }
+
+// ───────── 번역 ─────────
+
+/** 번역문 속 숫자들 ("32,000 won", "32.000 won" → 32000). 천 단위 구분자 뒤에는 숫자 3개가 와야 한다 */
+function numbersIn(text: string): Set<number> {
+  const found = new Set<number>();
+  for (const m of text.matchAll(/\d{1,3}(?:[,.\u00a0\u202f]\d{3})+(?!\d)|\d+/g)) {
+    found.add(Number(m[0].replace(/\D/g, "")));
+  }
+  return found;
+}
+
+/**
+ * 한국어 문장의 금액이 번역문에도 같은 숫자로 들어 있는지 문장 짝마다 확인한다.
+ * ("3만 2천 원" → 번역문에 32000이 있어야 함). 하나라도 빠지면 false.
+ */
+export function amountsKept(sources: string[], translated: string[]): boolean {
+  return sources.every((src, i) => {
+    const amounts = findAmounts(src);
+    if (amounts.size === 0) return true;
+    const nums = numbersIn(translated[i] ?? "");
+    return [...amounts].every((a) => nums.has(a));
+  });
+}
+
+/**
+ * 번역문 괄호 속 한국어 원어가 한국어 원문에 실제로 있는 말인지 확인하고,
+ * 없으면(예: "意见진술서"처럼 섞여 나온 경우) 그 괄호를 지운다.
+ */
+export function cleanKoreanGloss(translated: string, source: string): string {
+  return translated
+    .replace(/\s?[(（]([^()（）]*[가-힣][^()（）]*)[)）]/g, (whole, inner: string) => {
+      const words = inner.split(/[,，、·]/).map((w) => w.trim());
+      return words.every((w) => /^[가-힣\s]+$/.test(w) && source.includes(w)) ? whole : "";
+    })
+    .trim();
+}

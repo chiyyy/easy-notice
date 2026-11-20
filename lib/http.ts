@@ -17,6 +17,7 @@ const STATUS: Partial<Record<ErrorCode, number>> = {
   EXTRACT_PARSE_ERROR: 502,
   EXPLAIN_FAILED: 502,
   CHAT_FAILED: 502,
+  TRANSLATE_FAILED: 502,
 };
 
 /** 에러 코드 → 응답 (상태 코드는 코드에 맞춰 자동) */
