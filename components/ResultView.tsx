@@ -8,6 +8,7 @@ import type { ExplainResponse, ExtractResponse } from "@/lib/schema";
 import { useAnalysis } from "@/lib/store";
 import { suggestionsFor } from "@/lib/suggestions";
 import { useChat } from "@/lib/use-chat";
+import { useTranslate } from "@/lib/use-translate";
 import { BackButton } from "./BackButton";
 import { FontSizeToggle } from "./FontSizeToggle";
 import { BottomTabs, TABS, type TabKey } from "./result/BottomTabs";
@@ -17,6 +18,7 @@ import { ListenButton } from "./result/ListenButton";
 import { Disclaimer, MismatchNotice, SectionDivider, WarningBox } from "./result/Notices";
 import { SummaryCard } from "./result/SummaryCard";
 import { TodoList } from "./result/TodoList";
+import { TranslateTab } from "./result/TranslateTab";
 import { WordsTab } from "./result/WordsTab";
 
 export function ResultView() {
@@ -52,6 +54,12 @@ function ResultContent({
   const { level } = useAnalysis();
   // 대화는 여기서 들고 있어서 탭을 바꿔도 남는다
   const chat = useChat(extract.maskedText, level);
+  // 번역도 여기서 들고 있어서 탭을 바꿔도 다시 요청하지 않는다
+  const translateSource = useMemo(
+    () => ({ summary: explain.summary, todos: explain.todos, warnings: explain.warnings }),
+    [explain],
+  );
+  const translation = useTranslate(translateSource);
   const tabLabel = TABS.find((t) => t.key === tab)?.label ?? "";
   const docLabel = docTypeLabel(extract.docType);
   const speechLines = useMemo(() => buildSpeechLines(docLabel, explain), [docLabel, explain]);
@@ -99,6 +107,16 @@ function ResultContent({
             pending={chat.pending}
             suggestions={suggestionsFor(extract.docType)}
             onSend={chat.send}
+          />
+        )}
+        {tab === "translate" && (
+          <TranslateTab
+            lang={translation.lang}
+            current={translation.current}
+            onChoose={translation.choose}
+            onRetry={translation.retry}
+            fields={explain.fields}
+            dday={explain.dday}
           />
         )}
       </main>

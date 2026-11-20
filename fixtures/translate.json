@@ -1,0 +1,41 @@
+{
+  "en": {
+    "summary": [
+      "You got a fine (과태료) of 40,000 won for illegal parking.",
+      "If you pay by November 30, you only pay 32,000 won.",
+      "After the deadline, the discount ends and extra charges may be added."
+    ],
+    "todos": [
+      "Check that the date and place of the violation are correct",
+      "Pay 32,000 won by November 30",
+      "If you think it is unfair, submit a statement of opinion (의견진술서) before the deadline"
+    ],
+    "warnings": ["After the deadline, the discount ends and a late fee (가산금) may be added."]
+  },
+  "zh": {
+    "summary": [
+      "因违规停车，您被处以40,000韩元的罚款（과태료）。",
+      "11月30日前缴纳的话，只需缴纳32,000韩元。",
+      "过了期限，优惠就没有了，还可能会多收钱。"
+    ],
+    "todos": [
+      "确认违规的日期和地点是否正确",
+      "11月30日前缴纳32,000韩元",
+      "如果觉得不合理，请在期限内提交意见陈述书（의견진술서）"
+    ],
+    "warnings": ["过了期限，优惠就没有了，还可能加收滞纳金（가산금）。"]
+  },
+  "vi": {
+    "summary": [
+      "Bạn bị phạt tiền (과태료) 40.000 won vì đỗ xe sai quy định.",
+      "Nếu nộp trước ngày 30 tháng 11, bạn chỉ cần nộp 32.000 won.",
+      "Quá hạn thì sẽ mất giảm giá và có thể phải trả thêm tiền."
+    ],
+    "todos": [
+      "Kiểm tra ngày và địa điểm vi phạm có đúng không",
+      "Nộp 32.000 won trước ngày 30 tháng 11",
+      "Nếu thấy không hợp lý, hãy nộp bản trình bày ý kiến (의견진술서) trước hạn"
+    ],
+    "warnings": ["Quá hạn thì sẽ mất giảm giá và có thể bị cộng thêm tiền phạt chậm nộp (가산금)."]
+  }
+}

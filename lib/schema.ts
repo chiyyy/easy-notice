@@ -33,7 +33,7 @@ export const ErrorCodeSchema = z.enum([
   "EXPLAIN_FAILED",
   "CHAT_FAILED",
   "TRANSLATE_FAILED",
-  "NOT_IMPLEMENTED", // 아직 구현 전인 경로 (chat·translate)
+  "NOT_IMPLEMENTED", // 아직 구현 전인 경로
   "INTERNAL_ERROR",
 ]);
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -161,15 +161,16 @@ export const ChatWireSchema = z.object({
   evidence: z.string().nullable().describe("답의 근거가 된 원문 문장을 글자 그대로. 없으면 null"),
 });
 
-// ───────── /api/translate (선택) ─────────
+// ───────── /api/translate ─────────
 
 export const LangSchema = z.enum(["en", "zh", "vi"]);
 export type Lang = z.infer<typeof LangSchema>;
 
+/** 번역할 부분: 요약·할 일·주의할 점 (2차 결과. 원문·이미지는 보내지 않는다) */
 export const TranslatableSchema = z.object({
-  summary: z.array(z.string()),
-  todos: z.array(z.object({ task: z.string(), due: IsoDateSchema.nullable() })),
-  warnings: z.array(z.string()),
+  summary: z.array(z.string().max(500)).max(5),
+  todos: z.array(z.object({ task: z.string().max(500), due: IsoDateSchema.nullable() })).max(10),
+  warnings: z.array(z.string().max(500)).max(10),
 });
 export type Translatable = z.infer<typeof TranslatableSchema>;
 
@@ -179,5 +180,26 @@ export const TranslateRequestSchema = z.object({
 });
 export type TranslateRequest = z.infer<typeof TranslateRequestSchema>;
 
-export const TranslateResponseSchema = TranslatableSchema;
+export const TranslateResponseSchema = TranslatableSchema.extend({
+  /** 번역문에 원문의 숫자(금액·날짜)가 빠졌으면 true → 한국어 요약을 확인하라고 안내 */
+  numberMismatch: z.boolean(),
+});
 export type TranslateResponse = z.infer<typeof TranslateResponseSchema>;
+
+/** GPT에 넘기는 번역 스키마. 문장 배열만 받고, 기한(due)은 코드에서 그대로 붙인다 */
+export const TranslateWireSchema = z.object({
+  summary: z.array(z.string()),
+  todos: z.array(z.string()),
+  warnings: z.array(z.string()),
+});
+export type TranslateWire = z.infer<typeof TranslateWireSchema>;
+
+/** 번역 결과 검사: 문장 개수가 원본과 같아야 한다 */
+export function translateStrictSchema(src: Translatable) {
+  const line = z.string().trim().min(1);
+  return z.object({
+    summary: z.array(line).length(src.summary.length),
+    todos: z.array(line).length(src.todos.length),
+    warnings: z.array(line).length(src.warnings.length),
+  });
+}
